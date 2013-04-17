@@ -10,7 +10,15 @@ window.test = {
   },
 
   event : 'event',
-
+	
+	signals : {
+		signals : 'signals'
+	},
+	
+	adobeEvents : {
+		adobeEvent : 'adobe events'
+	},
+	
   properties : {
     type    : 'uncouth',
     revenue : 29.99
@@ -39,6 +47,14 @@ window.test = {
 
   // Providers
   // ---------
+	
+  'Adobe Audience Manager' : {
+		partner: 'globo',
+		uuidCookie:{
+			name:'aam_uuid',
+		  days:30
+		}
+  },
 
   'AdRoll' : {
     advId : 'LYFRCUIPPZCCTOBGRH7G32',
@@ -87,6 +103,11 @@ window.test = {
       universalClient: true,
       trackingId : 'x'
     }
+  },
+	
+  'Multi Google Analytics' : {
+    homeTrackingId : 'x',
+    produtoTrackingId : 'y'
   },
 
   'GoSquared' : 'x',

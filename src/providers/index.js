@@ -1,4 +1,5 @@
 module.exports = [
+  require('./adobe-audience-manager'),
   require('./adroll'),
   require('./bitdeli'),
   require('./bugherd'),
@@ -23,6 +24,7 @@ module.exports = [
   require('./livechat'),
   require('./lytics'),
   require('./mixpanel'),
+  require('./multi-google-analytics'),
   require('./olark'),
   require('./perfect-audience'),
   require('./pingdom'),
