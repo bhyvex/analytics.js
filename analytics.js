@@ -2380,9 +2380,9 @@ module.exports = Provider.extend({
   track : function (event, properties) {
     event || (event = '');
     properties || (properties = {});
-		
-		gDil.api.signals(event)
-		gDil.api.signals(properties)
+
+		gDil.api.signals(event, "c_")
+		gDil.api.signals(properties, "c_")
 		gDil.api.submit();
   }
 });
