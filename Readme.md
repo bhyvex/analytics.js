@@ -21,14 +21,15 @@ We've already packaged the files as a standalone build found in `analytics.js` a
 
 
 PROVIDERS GLOBO.COM
+===================
 
 Adobe Audience Manager 
-======================
+----------------------
 
 Initialize
 ----------
 analytics.initialize({
-	'Adobe Audience Manager' : ''
+	'Adobe Audience Manager' : ' '
 });
 
 
@@ -49,8 +50,9 @@ context = {
 analytics.track({event : 'capturando evento'}, {nome : 'nome do usuario'}, context)
 
 
+
 Multi Google Analytics
-======================
+----------------------
 
 Initialize
 ----------
