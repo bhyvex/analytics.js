@@ -1514,7 +1514,7 @@ module.exports = Analytics;
 function Analytics (Providers) {
   var self = this;
 
-  this.VERSION = '0.9.9';
+  this.VERSION = '0.9.17';
 
   each(Providers, function (Provider) {
     self.addProvider(Provider);
@@ -2486,10 +2486,16 @@ module.exports = Provider.extend({
   key : 'apiKey',
 
   defaults : {
-    apiKey : null
+    apiKey : null,
+    // Optionally hide the feedback tab if you want to build your own.
+    // http://support.bugherd.com/entries/21497629-Create-your-own-Send-Feedback-tab
+    showFeedbackTab : true
   },
 
   initialize : function (options, ready) {
+    if (!options.showFeedbackTab) {
+        window.BugHerdConfig = { "feedback" : { "hide" : true } };
+    }
     load('//www.bugherd.com/sidebarv2.js?apikey=' + options.apiKey, ready);
   }
 
@@ -2815,7 +2821,8 @@ require.register("analytics/src/providers/errorception.js", function(exports, re
 
 var Provider = require('../provider')
   , extend   = require('extend')
-  , load     = require('load-script');
+  , load     = require('load-script')
+  , type     = require('type');
 
 
 module.exports = Provider.extend({
@@ -2836,8 +2843,13 @@ module.exports = Provider.extend({
     load('//d15qhc0lu1ghnk.cloudfront.net/beacon.js');
 
     // Attach the window `onerror` event.
+    var oldOnError = window.onerror;
     window.onerror = function () {
       window._errs.push(arguments);
+      // Chain the old onerror handler after we finish our work.
+      if ('function' === type(oldOnError)) {
+        oldOnError.apply(this, arguments);
+      }
     };
 
     // Errorception makes a queue, so it's ready immediately.
@@ -3007,7 +3019,9 @@ module.exports = Provider.extend({
     // https://developers.google.com/analytics/devguides/collection/gajs/methods/gaJSApiBasicConfiguration#_gat.GA_Tracker_._setSiteSpeedSampleRate
     siteSpeedSampleRate : null,
     // Whether to enable GOogle's DoubleClick remarketing feature.
-    doubleClick : false
+    doubleClick : false,
+    // A domain to ignore for referrers. Maps to _addIgnoredRef
+    ignoreReferrer : null
   },
 
   //
@@ -3037,6 +3051,9 @@ module.exports = Provider.extend({
     }
     if (options.anonymizeIp) {
       window._gaq.push(['_gat._anonymizeIp']);
+    }
+    if (options.ignoreReferrer) {
+      window._gaq.push(['_addIgnoredRef', options.ignoreReferrer]);
     }
     if (options.initialPageview) {
       var path, canon = canonical();
@@ -3371,6 +3388,7 @@ module.exports = [
   require('./sentry'),
   require('./snapengage'),
   require('./usercycle'),
+  require('./userfox'),
   require('./uservoice'),
   require('./vero'),
   require('./woopra')
@@ -3496,8 +3514,12 @@ module.exports = Provider.extend({
   name : 'Keen IO',
 
   defaults : {
-    // Keen IO has one required option: `projectToken`
-    projectToken : null,
+    // The Project ID is **required**.
+    projectId : null,
+    // The Write Key is **required** to send events.
+    writeKey : null,
+    // The Read Key is optional, only if you want to "do analysis".
+    readKey : null,
     // Whether or not to pass pageviews on to Keen IO.
     pageview : true,
     // Whether or not to track an initial pageview on `initialize`.
@@ -3505,15 +3527,18 @@ module.exports = Provider.extend({
   },
 
   initialize : function (options, ready) {
-    window.Keen = window.Keen||{configure:function(a,b,c){this._pId=a;this._ak=b;this._op=c},addEvent:function(a,b,c,d){this._eq=this._eq||[];this._eq.push([a,b,c,d])},setGlobalProperties:function(a){this._gp=a},onChartsReady:function(a){this._ocrq=this._ocrq||[];this._ocrq.push(a)}};
-    window.Keen.configure(options.projectToken);
+    window.Keen = window.Keen||{configure:function(e){this._cf=e},addEvent:function(e,t,n,i){this._eq=this._eq||[],this._eq.push([e,t,n,i])},setGlobalProperties:function(e){this._gp=e},onChartsReady:function(e){this._ocrq=this._ocrq||[],this._ocrq.push(e)}};
+    window.Keen.configure({
+      projectId : options.projectId,
+      writeKey  : options.writeKey,
+      readKey   : options.readKey
+    });
 
-    load('//dc8na2hxrj29i.cloudfront.net/code/keen-2.0.0-min.js');
+    load('//dc8na2hxrj29i.cloudfront.net/code/keen-2.1.0-min.js');
 
     if (options.initialPageview) this.pageview();
 
-    // Keen IO defines all their functions in the snippet, so they
-    // are ready immediately.
+    // Keen IO defines all their functions in the snippet, so they're ready.
     ready();
   },
 
@@ -3537,8 +3562,10 @@ module.exports = Provider.extend({
   pageview : function (url) {
     if (!this.options.pageview) return;
 
-    var properties;
-    if (url) properties = { url : url };
+    var properties = {
+      url  : url || document.location.href,
+      name : document.title
+    };
 
     this.track('Loaded a Page', properties);
   }
@@ -3870,8 +3897,11 @@ module.exports = Provider.extend({
     // If they don't want pageviews tracked, leave now.
     if (!this.options.pageview) return;
 
-    var properties;
-    if (url) properties = { url : url };
+    var properties = {
+      url  : url || document.location.href,
+      name : document.title
+    };
+
     this.track('Loaded a Page', properties);
   },
 
@@ -4172,19 +4202,13 @@ module.exports = Provider.extend({
   },
 
   initialize : function (options, ready) {
-    window._prum = { id : options.id };
-    window.PRUM_EPISODES = window.PRUM_EPISODES || {};
-    window.PRUM_EPISODES.q = [];
-    window.PRUM_EPISODES.mark = function(b,a){PRUM_EPISODES.q.push(['mark',b,a||new Date().getTime()])};
-    window.PRUM_EPISODES.measure = function(b,a,b){PRUM_EPISODES.q.push(['measure',b,a,b||new Date().getTime()])};
-    window.PRUM_EPISODES.done = function(a){PRUM_EPISODES.q.push(['done',a])};
 
-    // In the original snippet they don't pass the time, but
-    // since we load this async, we need to pass in the actual start time.
-    window.PRUM_EPISODES.mark('firstbyte', date.getTime());
+    window._prum = [
+      ['id', options.id],
+      ['mark', 'firstbyte', date.getTime()]
+    ];
 
-    // We've replaced the original snippet loader with our
-    // own load method.
+    // We've replaced the original snippet loader with our own load method.
     load('//rum-static.pingdom.net/prum.min.js', ready);
   }
 
@@ -4376,26 +4400,124 @@ module.exports = Provider.extend({
 
 });
 });
+require.register("analytics/src/providers/userfox.js", function(exports, require, module){
+// https://www.userfox.com/docs/
+
+var Provider = require('../provider')
+  , extend   = require('extend')
+  , load     = require('load-script')
+  , isEmail  = require('is-email');
+
+
+module.exports = Provider.extend({
+
+  name : 'userfox',
+
+  key : 'clientId',
+
+  defaults : {
+    // userfox's required key.
+    clientId : null
+  },
+
+  initialize : function (options, ready) {
+    window._ufq = window._ufq || [];
+    load('//d2y71mjhnajxcg.cloudfront.net/js/userfox-stable.js');
+
+    // userfox creates its own queue, so we're ready right away
+    ready();
+  },
+
+  identify : function (userId, traits, context) {
+    // userfox requires an email.
+    var email;
+    if (userId && isEmail(userId)) email = userId;
+    if (traits && isEmail(traits.email)) email = traits.email;
+    if (!email) return;
+
+    // Initialize the library with the email now that we have it.
+    window._ufq.push(['init', {
+      clientId : this.options.clientId,
+      email    : email
+    }]);
+
+    // Record traits to "track" if we have the required signup date "created".
+    if (traits && traits.created) {
+      traits.signup_date = traits.created.getTime()+'';
+      window._ufq.push(['track', traits]);
+    }
+  }
+
+});
+
+});
 require.register("analytics/src/providers/uservoice.js", function(exports, require, module){
 // http://feedback.uservoice.com/knowledgebase/articles/225-how-do-i-pass-custom-data-through-the-widget-and-i
 
 var Provider = require('../provider')
-  , load     = require('load-script');
+  , load     = require('load-script')
+  , alias    = require('alias')
+  , clone    = require('clone');
 
 
 module.exports = Provider.extend({
 
   name : 'UserVoice',
 
-  key : 'widgetId',
-
   defaults : {
-    widgetId : null
+    // These first two options are required.
+    widgetId          : null,
+    forumId           : null,
+    // Should we show the tab automatically?
+    showTab           : true,
+    // There's tons of options for the tab.
+    mode              : 'full',
+    primaryColor      : '#cc6d00',
+    linkColor         : '#007dbf',
+    defaultMode       : 'support',
+    supportTabName    : null,
+    feedbackTabName   : null,
+    tabLabel          : 'Feedback & Support',
+    tabColor          : '#cc6d00',
+    tabPosition       : 'middle-right',
+    tabInverted       : false
   },
 
   initialize : function (options, ready) {
-    window.UserVoice = [];
+    window.UserVoice = window.UserVoice || [];
     load('//widget.uservoice.com/' + options.widgetId + '.js', ready);
+
+    var optionsClone = clone(options);
+    alias(optionsClone, {
+      'forumId'         : 'forum_id',
+      'primaryColor'    : 'primary_color',
+      'linkColor'       : 'link_color',
+      'defaultMode'     : 'default_mode',
+      'supportTabName'  : 'support_tab_name',
+      'feedbackTabName' : 'feedback_tab_name',
+      'tabLabel'        : 'tab_label',
+      'tabColor'        : 'tab_color',
+      'tabPosition'     : 'tab_position',
+      'tabInverted'     : 'tab_inverted'
+    });
+
+    // If we don't automatically show the tab, let them show it via
+    // javascript. This is the default name for the function in their snippet.
+    window.showClassicWidget = function (showWhat) {
+      window.UserVoice.push([showWhat || 'showLightbox', 'classic_widget', optionsClone]);
+    };
+
+    // If we *do* automatically show the tab, get on with it!
+    if (options.showTab) {
+      window.showClassicWidget('showTab');
+    }
+  },
+
+  identify : function (userId, traits) {
+    // Pull the ID into traits.
+    traits.id = userId;
+
+    window.UserVoice.push(['setCustomFields', traits]);
   }
 
 });

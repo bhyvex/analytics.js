@@ -14,7 +14,6 @@ describe('Keen IO', function () {
       expect(window.Keen).not.to.be(undefined);
       expect(window.Keen.setGlobalProperties).not.to.be(undefined);
       expect(window.Keen.addEvent).not.to.be(undefined);
-      expect(window.Keen._pId).to.equal('KEEN_PROJECT_TOKEN');
       expect(spy.called).to.be(true);
 
       // When the Keen IO library loads, it creates some keys we can test.
@@ -29,10 +28,11 @@ describe('Keen IO', function () {
 
     it('should store options', function () {
       analytics.initialize({ 'Keen IO' : test['Keen IO'] });
-      expect(analytics.providers[0].options.projectToken).to.equal(test['Keen IO'].projectToken);
+      expect(analytics.providers[0].options.projectId).to.equal(test['Keen IO'].projectId);
+      expect(analytics.providers[0].options.writeKey).to.equal(test['Keen IO'].writeKey);
     });
 
-    it('shouldnt track an initial pageview', function () {
+    it('shouldnt track an initial pageview by default', function () {
       var provider = analytics.providers[0]
         , spy      = sinon.spy(provider, 'pageview');
 
@@ -42,7 +42,7 @@ describe('Keen IO', function () {
       spy.restore();
     });
 
-    it('should track an initial pageview', function () {
+    it('should track an initial pageview with initialPageview set', function () {
       var extend  = require('segmentio-extend')
         , spy     = sinon.spy(window.Keen, 'addEvent')
         , options = extend({}, test['Keen IO'], {
@@ -116,7 +116,7 @@ describe('Keen IO', function () {
 
   describe('pageview', function () {
 
-    it('shouldnt track pageviews', function () {
+    it('shouldnt track pageviews by default', function () {
       var provider = analytics.providers[0]
         , spy      = sinon.spy(provider, 'track');
 
@@ -126,13 +126,16 @@ describe('Keen IO', function () {
       spy.restore();
     });
 
-    it('should track pageviews', function () {
+    it('should track pageviews with the pageview option set', function () {
       var provider = analytics.providers[0]
         , spy      = sinon.spy(provider, 'track');
 
       provider.options.pageview = true;
       analytics.pageview(test.url);
-      expect(spy.calledWith('Loaded a Page', { url : test.url })).to.be(true);
+      expect(spy.calledWith('Loaded a Page', {
+        url  : test.url,
+        name : document.title
+      })).to.be(true);
 
       spy.restore();
       provider.options.pageview = false;

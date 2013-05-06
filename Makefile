@@ -44,6 +44,13 @@ test-providers: server
 	sleep 1
 	$(PHANTOM) $(PHANTOM_OPTS) http://localhost:8000/test/providers.html
 	make kill
+	
+#só é usado pela globo.com manter no conflito do marge
+# Runs only the minified provider tests.
+test-providers-min: server
+	sleep 1
+	$(PHANTOM) $(PHANTOM_OPTS) http://localhost:8000/test/min.html
+	make kill	
 
 # Opens all the tests in your browser.
 test-browser: server
