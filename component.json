@@ -2,7 +2,7 @@
   "name": "analytics",
   "repo": "segmentio/analytics.js",
   "description": "The hassle-free way to integrate analytics into any web application.",
-  "version": "0.9.17",
+  "version": "0.10.3",
   "keywords": [
     "analytics",
     "analytics.js",
@@ -36,8 +36,10 @@
     "mixpanel",
     "multi google analytics",
     "olark",
+    "optimizely",
     "perfect audience",
     "pingdom",
+    "preact",
     "qualaroo",
     "quantcast",
     "sentry",
@@ -69,6 +71,7 @@
     "segmentio/load-script": "*",
     "segmentio/new-date": "*",
     "segmentio/on-body": "*",
+    "timoxley/next-tick": "*",
     "yields/prevent": "*"
   },
   "scripts": [
@@ -105,8 +108,10 @@
     "src/providers/mixpanel.js",
     "src/providers/multi-google-analytics.js",
     "src/providers/olark.js",
+    "src/providers/optimizely.js",
     "src/providers/perfect-audience.js",
     "src/providers/pingdom.js",
+    "src/providers/preact.js",
     "src/providers/qualaroo.js",
     "src/providers/quantcast.js",
     "src/providers/sentry.js",

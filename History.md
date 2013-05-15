@@ -1,3 +1,22 @@
+0.10.3 / 2013-5-15
+==================
+
+0.10.2 / 2013-5-14
+==================
+* Fixed handling of `increments` and `userHash` from `options.Intercom`
+
+0.10.1 / 2013-5-14
+==================
+* Added `identify` to SnapEngage integration
+
+0.10.0 / 2013-5-9
+=================
+* Added `group` method
+
+0.9.18 / 2013-5-9
+=================
+* Added [preact](http://www.preact.io/) support by [@azcoov](https://github.com/azcoov)
+
 0.9.17 / 2013-5-1
 =================
 * Updated Keen to version 2.1.0
@@ -336,7 +355,7 @@
 * Added "Enhanced Link Attribution" for Google Analytics by [@nscott](https://github.com/nscott)
 * Added "Site Speed Sample Rate" for Google Analytics by [@nscott](https://github.com/nscott)
 
-0.1.0 / 2012-10-11 
+0.1.0 / 2012-10-11
 ==================
 * [Olark](http://www.olark.com/)
 * Added terse `initialize` syntax

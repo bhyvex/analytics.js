@@ -1,6 +1,6 @@
 {
   "name": "analytics.js",
-  "version": "0.9.17",
+  "version": "0.10.4",
   "author": "Segment.io <friends@segment.io>",
   "description": "The hassle-free way to integrate analytics into any web application.",
   "license": "MIT",
@@ -52,6 +52,7 @@
     "klaviyo",
     "mixpanel",
     "olark",
+    "optimizely",
     "perfect audience",
     "pingdom",
     "qualaroo",
