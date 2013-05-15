@@ -40,27 +40,29 @@ module.exports = Provider.extend({
   initialize : function (options, ready) {
 
     window._gaq = window._gaq || [];
-    window._gaq.push(['_setAccount', options.homeTrackingId]);
-    window._gaq.push(['b._setAccount', options.produtoTrackingId]);
-		
-
+    
+		window._gaq.push(['_setAccount', options.homeTrackingId]);
     // Apply a bunch of optional settings.
     if (options.homeDomain) {
       window._gaq.push(['_setDomainName', options.homeDomain]);
+    }    
+		if (type(options.homeSiteSpeedSampleRate) === 'number') {
+      window._gaq.push(['_setSiteSpeedSampleRate', options.homeSiteSpeedSampleRate]);
     }
+
+    window._gaq.push(['b._setAccount', options.produtoTrackingId]);
     if (options.produtoDomain) {
       window._gaq.push(['b._setDomainName', options.produtoDomain]);
     }
+    if (type(options.produtoSiteSpeedSampleRate) === 'number') {
+      window._gaq.push(['b._setSiteSpeedSampleRate', options.produtoSiteSpeedSampleRate]);
+    }
+
+
     if (options.enhancedLinkAttribution) {
       var protocol = 'https:' === document.location.protocol ? 'https:' : 'http:';
       var pluginUrl = protocol + '//www.google-analytics.com/plugins/ga/inpage_linkid.js';
       window._gaq.push(['_require', 'inpage_linkid', pluginUrl]);
-    }
-    if (type(options.homeSiteSpeedSampleRate) === 'number') {
-      window._gaq.push(['_setSiteSpeedSampleRate', options.homeSiteSpeedSampleRate]);
-    }
-    if (type(options.produtoSiteSpeedSampleRate) === 'number') {
-      window._gaq.push(['b._setSiteSpeedSampleRate', options.produtoSiteSpeedSampleRate]);
     }
     if (options.anonymizeIp) {
       window._gaq.push(['_gat._anonymizeIp']);
@@ -70,10 +72,6 @@ module.exports = Provider.extend({
       if (canon) path = url.parse(canon).pathname;
       
 			this.pageview(path);
-	    
-			if (options.produtoInitialPageview) {
-				this.produtoPageview(path);
-			}
     }
 
     // URLs change if DoubleClick is on.
@@ -114,9 +112,6 @@ module.exports = Provider.extend({
 
   pageview : function (url) {
     window._gaq.push(['_trackPageview', url]);
-  },
-	
-  produtoPageview : function (url) {
     window._gaq.push(['b._trackPageview', url]);
   }
 });

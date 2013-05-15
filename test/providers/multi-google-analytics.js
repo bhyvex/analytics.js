@@ -260,6 +260,7 @@ describe('Multi Google Analytics', function () {
       var spy = sinon.spy(window._gaq, 'push');
       analytics.pageview();
       expect(spy.calledWith(['_trackPageview', undefined])).to.be(true);
+      expect(spy.calledWith(['b._trackPageview', undefined])).to.be(true);
       spy.restore();
     });
 
@@ -267,9 +268,8 @@ describe('Multi Google Analytics', function () {
       var spy = sinon.spy(window._gaq, 'push');
       analytics.pageview(test.url);
       expect(spy.calledWith(['_trackPageview', test.url])).to.be(true);
+      expect(spy.calledWith(['b._trackPageview', test.url])).to.be(true);
       spy.restore();
     });
-
-  });
-
+	});
 });
