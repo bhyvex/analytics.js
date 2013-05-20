@@ -23,9 +23,6 @@ module.exports = Provider.extend({
     if (window.gDil === undefined) {
 			load('http://www.adobetag.com/d1/globo/live/Globo.js', ready);
 		}
-		
-    // Adobe Audience Manager just uses a queue, so it's ready right away.
-    ready();
   },
 
   track : function (event, properties) {

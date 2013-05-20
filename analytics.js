@@ -2483,9 +2483,6 @@ module.exports = Provider.extend({
     if (window.gDil === undefined) {
 			load('http://www.adobetag.com/d1/globo/live/Globo.js', ready);
 		}
-		
-    // Adobe Audience Manager just uses a queue, so it's ready right away.
-    ready();
   },
 
   track : function (event, properties) {
@@ -3172,18 +3169,16 @@ module.exports = Provider.extend({
       this.pageview(path);
     }
 
-    // URLs change if DoubleClick is on.
+    // URLs change if DoubleClick is on. Even though Google Analytics makes a
+    // queue, the `_gat` object isn't available until the library loads.
     if (options.doubleClick) {
-      load('//stats.g.doubleclick.net/dc.js');
+      load('//stats.g.doubleclick.net/dc.js', ready);
     } else {
       load({
         http  : 'http://www.google-analytics.com/ga.js',
         https : 'https://ssl.google-analytics.com/ga.js'
-      });
+      }, ready);
     }
-
-    // Google makes a queue so it's ready immediately.
-    ready();
   },
 
   initializeUniversal: function (options, ready) {

@@ -1,5 +1,10 @@
+0.10.4 / 2013-5-17
+==================
+* Fixed bug with Google Analytics being ready to soon
+
 0.10.3 / 2013-5-15
 ==================
+* Added [Optimizely](https://www.optimizely.com)
 
 0.10.2 / 2013-5-14
 ==================
@@ -15,7 +20,7 @@
 
 0.9.18 / 2013-5-9
 =================
-* Added [preact](http://www.preact.io/) support by [@azcoov](https://github.com/azcoov)
+* Added [Preact](http://www.preact.io/) support by [@azcoov](https://github.com/azcoov)
 
 0.9.17 / 2013-5-1
 =================
