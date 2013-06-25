@@ -33,7 +33,9 @@ test: server
 	sleep 1
 	$(PHANTOM) $(PHANTOM_OPTS) http://localhost:8000/test/core.html
 	$(PHANTOM) $(PHANTOM_OPTS) http://localhost:8000/test/providers.html
-	$(PHANTOM) $(PHANTOM_OPTS) http://localhost:8000/test/min.html
+	$(PHANTOM) $(PHANTOM_OPTS) http://localhost:8000/test/min.html	
+	$(PHANTOM) $(PHANTOM_OPTS) http://localhost:8000/test/globo-providers.html
+
 	make kill
 
 # Runs only the non-minified core tests.
@@ -47,6 +49,14 @@ test-providers: server
 	sleep 1
 	$(PHANTOM) $(PHANTOM_OPTS) http://localhost:8000/test/providers.html
 	make kill
+	
+	
+#só é usado pela globo.com manter no conflito do marge
+# Runs only the minified provider tests.
+test-globo-providers: server
+	sleep 1
+	$(PHANTOM) $(PHANTOM_OPTS) http://localhost:8000/test/globo-providers.html
+	make kill		
 	
 #só é usado pela globo.com manter no conflito do marge
 # Runs only the minified provider tests.
@@ -64,8 +74,5 @@ test-browser: server
 
 # Compiles, minfies, component, and tests analytics.js - wrapped up and good to go.
 release: clean analytics.js min component test
-
-
-
 
 .PHONY: analytics.js min clean install component test release
