@@ -18,17 +18,13 @@ module.exports = Provider.extend({
     var _lnq = window._lnq = window._lnq || [];
     _lnq.push(["_setCode", options.projectCode]);
 
-    load('//d2bbvl6dq48fa6.cloudfront.net/js/ln-2.3.min.js');
+    load('//d2bbvl6dq48fa6.cloudfront.net/js/ln-2.4.min.js');
     ready();
   },
 
   identify : function (userId, traits) {
-    // Don't do anything if we just have traits, because Preact
-    // requires a `userId`.
+    // Don't do anything if we just have traits. Preact requires a `userId`.
     if (!userId) return;
-
-    // If there wasn't already an email and the userId is one, use it.
-    if (!traits.email && isEmail(userId)) traits.email = userId;
 
     // Swap the `created` trait to the `created_at` that Preact needs
     // and convert it from milliseconds to seconds.
@@ -38,24 +34,38 @@ module.exports = Provider.extend({
     }
 
     window._lnq.push(['_setPersonData', {
-      name : traits.name,
-      email : traits.email,
-      uid : userId,
+      name       : traits.name,
+      email      : traits.email,
+      uid        : userId,
       properties : traits
     }]);
+  },
+
+  group : function (groupId, properties) {
+    if (!groupId) return;
+    properties.id = groupId;
+    window._lnq.push(['_setAccount', properties]);
   },
 
   track : function (event, properties) {
     properties || (properties = {});
 
-    var personEvent = {
-      name : event,
-      target_id : properties.target_id,
-      note : properties.note,
-      revenue : properties.revenue
+    // Preact takes a few special properties, and the rest in `extras`. So first
+    // convert and remove the special ones from `properties`.
+    var special = { name : event };
+
+    // They take `revenue` in cents.
+    if (properties.revenue) {
+      special.revenue = properties.revenue * 100;
+      delete properties.revenue;
     }
 
-    window._lnq.push(['_logEvent', personEvent, properties]);
+    if (properties.note) {
+      special.note = properties.note;
+      delete properties.note;
+    }
+
+    window._lnq.push(['_logEvent', special, properties]);
   }
 
 });

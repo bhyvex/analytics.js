@@ -1,6 +1,7 @@
 module.exports = [
   require('./adobe-audience-manager'),
   require('./adroll'),
+  require('./amplitude'),
   require('./bitdeli'),
   require('./bugherd'),
   require('./chartbeat'),
@@ -12,11 +13,13 @@ module.exports = [
   require('./errorception'),
   require('./foxmetrics'),
   require('./gauges'),
+  require('./get-satisfaction'),
   require('./google-analytics'),
   require('./gosquared'),
   require('./heap'),
   require('./hittail'),
   require('./hubspot'),
+  require('./improvely'),
   require('./intercom'),
   require('./keen-io'),
   require('./kissmetrics'),
@@ -38,5 +41,6 @@ module.exports = [
   require('./userfox'),
   require('./uservoice'),
   require('./vero'),
+  require('./visual-website-optimizer'),
   require('./woopra')
 ];

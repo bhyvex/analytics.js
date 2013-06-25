@@ -1,6 +1,6 @@
 {
   "name": "analytics.js",
-  "version": "0.10.4",
+  "version": "0.11.9",
   "author": "Segment.io <friends@segment.io>",
   "description": "The hassle-free way to integrate analytics into any web application.",
   "license": "MIT",
@@ -31,6 +31,7 @@
     "segmentio",
     "segment.io",
     "adroll",
+    "amplitude",
     "bitdeli",
     "chartbeat",
     "clicktale",
@@ -40,12 +41,14 @@
     "customer.io",
     "errorception",
     "foxmetrics",
-    "google analytics",
     "gauges",
+    "get satisfaction",
+    "google analytics",
     "gosquared",
     "heap",
     "hittail",
     "hubspot",
+    "improvely",
     "intercom",
     "keen io",
     "kissmetrics",
@@ -61,6 +64,7 @@
     "usercycle",
     "userfox",
     "uservoice",
-    "vero"
+    "vero",
+    "visual website optimizer"
   ]
 }

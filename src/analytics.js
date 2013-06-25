@@ -1,9 +1,12 @@
 var after          = require('after')
   , bind           = require('event').bind
   , clone          = require('clone')
+  , cookie         = require('./cookie')
   , each           = require('each')
   , extend         = require('extend')
+  , isEmail        = require('is-email')
   , isMeta         = require('is-meta')
+  , localStore     = require('./localStore')
   , newDate        = require('new-date')
   , size           = require('object').length
   , preventDefault = require('prevent')
@@ -28,7 +31,7 @@ module.exports = Analytics;
 function Analytics (Providers) {
   var self = this;
 
-  this.VERSION = '0.10.3';
+  this.VERSION = '0.11.9';
 
   each(Providers, function (Provider) {
     self.addProvider(Provider);
@@ -110,6 +113,8 @@ extend(Analytics.prototype, {
    */
 
   initialize : function (providers, options) {
+    options || (options = {});
+
     var self = this;
 
     // Reset our state.
@@ -117,8 +122,12 @@ extend(Analytics.prototype, {
     this.initialized = false;
     this.readied = false;
 
-    // Set the user options, and load the user from our cookie.
-    user.options(options);
+    // Set the storage options
+    cookie.options(options.cookie);
+    localStore.options(options.localStorage);
+
+    // Set the options for loading and saving the user
+    user.options(options.user);
     user.load();
 
     // Create a ready method that will call all of our ready callbacks after all
@@ -137,7 +146,7 @@ extend(Analytics.prototype, {
     // copy the provider into `this.providers`.
     each(providers, function (key, options) {
       var Provider = self._providers[key];
-      if (!Provider) throw new Error('Couldnt find a provider named "'+key+'"');
+      if (!Provider) return;
       self.providers.push(new Provider(options, ready, self));
     });
 
@@ -221,13 +230,7 @@ extend(Analytics.prototype, {
 
     // Clone `traits` before we manipulate it, so we don't do anything uncouth
     // and take the user.traits() so anonymous users carry over traits.
-    traits = clone(user.traits());
-
-    // Convert dates from more types of input into Date objects.
-    if (traits && traits.created) traits.created = newDate(traits.created);
-    if (traits && traits.company && traits.company.created) {
-      traits.company.created = newDate(traits.company.created);
-    }
+    traits = cleanTraits(userId, clone(user.traits()));
 
     // Call `identify` on all of our enabled providers that support it.
     each(this.providers, function (provider) {
@@ -383,9 +386,13 @@ extend(Analytics.prototype, {
    * @param {Element|Array} links - The link element or array of link elements
    * to bind to. (Allowing arrays makes it easy to pass in jQuery objects.)
    *
-   * @param {String} event - Passed directly to `track`.
+   * @param {String|Function} event - Passed directly to `track`. Or in the case
+   * that it's a function, it will be called with the link element as the first
+   * argument.
    *
-   * @param {Object} properties (optional) - Passed directly to `track`.
+   * @param {Object|Function} properties (optional) - Passed directly to
+   * `track`. Or in the case that it's a function, it will be called with the
+   * link element as the first argument.
    */
 
   trackLink : function (links, event, properties) {
@@ -395,17 +402,19 @@ extend(Analytics.prototype, {
     // arrays, which allows for passing jQuery objects.
     if ('element' === type(links)) links = [links];
 
-    var self       = this
-      , isFunction = 'function' === type(properties);
+    var self               = this
+      , eventFunction      = 'function' === type(event)
+      , propertiesFunction = 'function' === type(properties);
 
     each(links, function (el) {
       bind(el, 'click', function (e) {
 
-        // Allow for properties to be a function. And pass it the
+        // Allow for `event` or `properties` to be a function. And pass it the
         // link element that was clicked.
-        var props = isFunction ? properties(el) : properties;
+        var newEvent      = eventFunction ? event(el) : event;
+        var newProperties = propertiesFunction ? properties(el) : properties;
 
-        self.track(event, props);
+        self.track(newEvent, newProperties);
 
         // To justify us preventing the default behavior we must:
         //
@@ -441,9 +450,13 @@ extend(Analytics.prototype, {
    * @param {Element|Array} forms - The form element or array of form elements
    * to bind to. (Allowing arrays makes it easy to pass in jQuery objects.)
    *
-   * @param {String} event - Passed directly to `track`.
+   * @param {String|Function} event - Passed directly to `track`. Or in the case
+   * that it's a function, it will be called with the form element as the first
+   * argument.
    *
-   * @param {Object} properties (optional) - Passed directly to `track`.
+   * @param {Object|Function} properties (optional) - Passed directly to
+   * `track`. Or in the case that it's a function, it will be called with the
+   * form element as the first argument.
    */
 
   trackForm : function (form, event, properties) {
@@ -453,17 +466,19 @@ extend(Analytics.prototype, {
     // which allows for passing jQuery objects.
     if ('element' === type(form)) form = [form];
 
-    var self       = this
-      , isFunction = 'function' === type(properties);
+    var self               = this
+      , eventFunction      = 'function' === type(event)
+      , propertiesFunction = 'function' === type(properties);
 
     each(form, function (el) {
       var handler = function (e) {
 
-        // Allow for properties to be a function. And pass it the form element
-        // that was submitted.
-        var props = isFunction ? properties(el) : properties;
+        // Allow for `event` or `properties` to be a function. And pass it the
+        // form element that was submitted.
+        var newEvent      = eventFunction ? event(el) : event;
+        var newProperties = propertiesFunction ? properties(el) : properties;
 
-        self.track(event, props);
+        self.track(newEvent, newProperties);
 
         preventDefault(e);
 
@@ -494,14 +509,17 @@ extend(Analytics.prototype, {
    *
    * @param {String} url (optional) - The path of the page (eg. '/login'). Most
    * providers will default to the current pages URL, so you don't need this.
+   *
+   * @param {Object} options (optional) - Settings for the pageview call.
+   *
    */
 
-  pageview : function (url) {
+  pageview : function (url,options) {
     if (!this.initialized) return;
 
     // Call `pageview` on all of our enabled providers that support it.
     each(this.providers, function (provider) {
-      if (provider.pageview) {
+      if (provider.pageview && isEnabled(provider, options)) {
         var args = [url];
         if (provider.ready) {
           provider.pageview.apply(provider, args);
@@ -611,4 +629,33 @@ var isEnabled = function (provider, options) {
   if (map[name] !== undefined) enabled = map[name];
 
   return enabled;
+};
+
+
+/**
+ * Clean up traits, default some useful things both so the user doesn't have to
+ * and so we don't have to do it on a provider-basis.
+ *
+ * @param {Object}  traits  The traits object.
+ * @return {Object}         The new traits object.
+ */
+
+var cleanTraits = function (userId, traits) {
+
+  // Add the `email` trait if it doesn't exist and the `userId` is an email.
+  if (!traits.email && isEmail(userId)) traits.email = userId;
+
+  // Create the `name` trait if it doesn't exist and `firstName` and `lastName`
+  // are both supplied.
+  if (!traits.name && traits.firstName && traits.lastName) {
+    traits.name = traits.firstName + ' ' + traits.lastName;
+  }
+
+  // Convert dates from more types of input into Date objects.
+  if (traits.created) traits.created = newDate(traits.created);
+  if (traits.company && traits.company.created) {
+    traits.company.created = newDate(traits.company.created);
+  }
+
+  return traits;
 };

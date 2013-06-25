@@ -12,6 +12,7 @@ window.test = {
   groupId : 'group',
 
   groupProperties : {
+    name      : 'Group',
     employees : 42,
     plan      : 'Gold'
   },
@@ -68,6 +69,8 @@ window.test = {
     pixId : 'V7TLXL5WWBA5NOU5MOJQW4'
   },
 
+  'Amplitude' : '07808866adb2510adf19ee69e8fc2201',
+
   'Bitdeli' : {
     inputId   : 'x',
     authToken : 'y'
@@ -102,6 +105,8 @@ window.test = {
 
   'Gauges' : 'x',
 
+  'Get Satisfaction' : 5005,
+
   'Google Analytics' : {
     classic: {
       trackingId : 'x'
@@ -124,6 +129,11 @@ window.test = {
   'HitTail' : 'x',
 
   'HubSpot' : 'x',
+
+  'Improvely' : {
+    domain    : 'demo',
+    projectId : 1
+  },
 
   'Intercom' : {
     appId     : 'x',
@@ -180,6 +190,8 @@ window.test = {
   'userfox' : '4v2erxr9c5vzqsy35z9gnk6az',
 
   'Vero' : 'x',
+
+  'Visual Website Optimizer' : 44207,
 
   'Woopra' : 'x'
 
