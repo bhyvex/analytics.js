@@ -13,12 +13,10 @@ Building
 Analytics.js is packaged as a [component](https://github.com/component/component). In order to build it, you will need to install component:
 
 ```shell
-npm install -g component
+npm install component
 ```
 
 We've already packaged the files as a standalone build found in `analytics.js` and `analytics.min.js`. To build the files yourself, run `make`.
-
-<<<<<<< HEAD
 
 
 PROVIDERS GLOBO.COM
@@ -44,7 +42,7 @@ Context
 context = {
 	providers: {
 		'All'              				: false,
-	  'Google Analytics' 				: false,
+	  'Google Analytics' 				: true,
 	  'Adobe Audience Manager'	: true
 	}
 };
