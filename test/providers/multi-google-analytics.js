@@ -272,4 +272,34 @@ describe('Multi Google Analytics', function () {
       spy.restore();
     });
 	});
+
+  describe('identify', function () {
+
+    it('should push "_setCustomVar"', function () {
+      // Define `_gaq` so we can spy on it.
+      window._gaq = [];
+      var spy = sinon.spy(window._gaq, 'push');
+
+      analytics.user.clear(); // Clear segment.io cookies and localstorage. Prevents intermittent test.
+      analytics.initialize({ 'Multi Google Analytics' : {
+        homeTrackingId : 'w',
+        produtoTrackingId : 'k',
+        traitsPositions: { ESTADO: 3, FAIXA_ETARIA: 4, SEXO: 5 }
+      }});
+      analytics.identify(21321321, {
+          ESTADO: "RJ",
+          FAIXA_ETARIA: "Adolescente (12 a 17 anos)",
+          SEXO: "Masculino"
+      });
+
+      expect(spy.getCall(4).args[0]).to.eql(["_setCustomVar",3,"ESTADO","RJ",1]);
+      expect(spy.getCall(4).args[1]).to.eql(["b._setCustomVar",3,"ESTADO","RJ",1]);
+      expect(spy.getCall(5).args[0]).to.eql(["_setCustomVar",4,"FAIXA_ETARIA","Adolescente (12 a 17 anos)",1]);
+      expect(spy.getCall(5).args[1]).to.eql(["b._setCustomVar",4,"FAIXA_ETARIA","Adolescente (12 a 17 anos)",1]);
+      expect(spy.getCall(6).args[0]).to.eql(["_setCustomVar",5,"SEXO","Masculino",1]);
+      expect(spy.getCall(6).args[1]).to.eql(["b._setCustomVar",5,"SEXO","Masculino",1]);
+
+      spy.restore();
+    });
+  });
 });

@@ -1460,13 +1460,42 @@ require.register("segmentio-new-date/index.js", function(exports, require, modul
 var type = require('type');
 
 
-module.exports = function newDate (date) {
-  // Milliseconds would be greater than 31557600000 (December 31, 1970).
-  if ('number' === type(date) && date < 31557600000) date = date * 1000;
+/**
+ * Returns a new Javascript Date object, allowing a variety of extra input types
+ * over the native one.
+ *
+ * @param {Date|String|Number} input
+ */
+
+module.exports = function newDate (input) {
+
+  // Convert input from seconds to milliseconds.
+  input = toMilliseconds(input);
 
   // By default, delegate to Date, which will return `Invalid Date`s if wrong.
-  return new Date(date);
+  var date = new Date(input);
+
+  // If we have a string that the Date constructor couldn't parse, convert it.
+  if (isNaN(date.getTime()) && 'string' === type(input)) {
+    var milliseconds = toMilliseconds(parseInt(input, 10));
+    date = new Date(milliseconds);
+  }
+
+  return date;
 };
+
+
+/**
+ * If the number passed in is seconds from the epoch, turn it into milliseconds.
+ * Milliseconds would be greater than 31557600000 (December 31, 1970).
+ *
+ * @param seconds
+ */
+
+function toMilliseconds (seconds) {
+  if ('number' === type(seconds) && seconds < 31557600000) return seconds * 1000;
+  return seconds;
+}
 });
 require.register("segmentio-on-body/index.js", function(exports, require, module){
 var each = require('each');
@@ -1692,8 +1721,10 @@ module.exports = function (urlStr) {
 };
 });
 require.register("timoxley-next-tick/index.js", function(exports, require, module){
+"use strict"
+
 if (typeof setImmediate == 'function') {
-  module.exports = function(ƒ){ setImmediate(ƒ) }
+  module.exports = function(f){ setImmediate(f) }
 }
 // legacy node.js
 else if (typeof process != 'undefined' && typeof process.nextTick == 'function') {
@@ -1701,7 +1732,7 @@ else if (typeof process != 'undefined' && typeof process.nextTick == 'function')
 }
 // fallback for other environments / postMessage behaves badly on IE8
 else if (typeof window == 'undefined' || window.ActiveXObject || !window.postMessage) {
-  module.exports = function(ƒ){ setTimeout(ƒ) };
+  module.exports = function(f){ setTimeout(f) };
 } else {
   var q = [];
 
@@ -2992,16 +3023,23 @@ module.exports = Provider.extend({
 
   initialize : function (options, ready) {
     if (window.gDil === undefined) {
-			load('http://www.adobetag.com/d1/globo/live/Globo.js', ready);
+			load('//www.adobetag.com/d1/globo/live/Globo.js', ready); // http and https
 		}
+  },
+
+  identify : function (userId, traits) {
+    if (traits) {
+      gDil.api.signals(traits, "c_");
+      gDil.api.submit();
+    }
   },
 
   track : function (event, properties) {
     event || (event = '');
     properties || (properties = {});
 
-		gDil.api.signals(event, "c_")
-		gDil.api.signals(properties, "c_")
+		gDil.api.signals(event, "c_");
+		gDil.api.signals(properties, "c_");
 		gDil.api.submit();
   }
 });
@@ -4610,6 +4648,7 @@ require.register("analytics/src/providers/multi-google-analytics.js", function(e
 
 var Provider  = require('../provider')
   , load      = require('load-script')
+  , each      = require('each')
   , type      = require('type')
   , url       = require('url')
   , canonical = require('canonical');
@@ -4642,10 +4681,14 @@ module.exports = Provider.extend({
     homeSiteSpeedSampleRate : null,
     produtoSiteSpeedSampleRate : null,
     // Whether to enable GOogle's DoubleClick remarketing feature.
-    doubleClick : false
+    doubleClick : false,
+    // _setCustomVar positions ex: traitsPositions: { ESTADO: 3, FAIXA_ETARIA: 4, SEXO: 5 }
+    traitsPositions: null
   },
 
   initialize : function (options, ready) {
+
+    window.MultiGoogleAnalytics = window.MultiGoogleAnalytics || {};
 
     window._gaq = window._gaq || [];
     
@@ -4682,6 +4725,8 @@ module.exports = Provider.extend({
 			this.pageview(path);
     }
 
+    window.MultiGoogleAnalytics["traitsPositions"] = options.traitsPositions;
+
     // URLs change if DoubleClick is on.
     if (options.doubleClick) {
       load('//stats.g.doubleclick.net/dc.js');
@@ -4694,6 +4739,15 @@ module.exports = Provider.extend({
 
     // Google makes a queue so it's ready immediately.
     ready();
+  },
+
+  identify : function (userId, traits) {
+    if (traits) {
+      each(traits, function (key, value) {
+        window._gaq.push(['_setCustomVar', window.MultiGoogleAnalytics.traitsPositions[key], key, value, 1],
+                         ['b._setCustomVar', window.MultiGoogleAnalytics.traitsPositions[key], key, value, 1]);
+      });
+    }
   },
 
   track : function (event, properties) {

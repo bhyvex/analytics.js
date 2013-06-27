@@ -21,16 +21,23 @@ module.exports = Provider.extend({
 
   initialize : function (options, ready) {
     if (window.gDil === undefined) {
-			load('http://www.adobetag.com/d1/globo/live/Globo.js', ready);
+			load('//www.adobetag.com/d1/globo/live/Globo.js', ready); // http and https
 		}
+  },
+
+  identify : function (userId, traits) {
+    if (traits) {
+      gDil.api.signals(traits, "c_");
+      gDil.api.submit();
+    }
   },
 
   track : function (event, properties) {
     event || (event = '');
     properties || (properties = {});
 
-		gDil.api.signals(event, "c_")
-		gDil.api.signals(properties, "c_")
+		gDil.api.signals(event, "c_");
+		gDil.api.signals(properties, "c_");
 		gDil.api.submit();
   }
 });

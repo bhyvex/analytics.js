@@ -2,6 +2,7 @@
 
 var Provider  = require('../provider')
   , load      = require('load-script')
+  , each      = require('each')
   , type      = require('type')
   , url       = require('url')
   , canonical = require('canonical');
@@ -34,10 +35,14 @@ module.exports = Provider.extend({
     homeSiteSpeedSampleRate : null,
     produtoSiteSpeedSampleRate : null,
     // Whether to enable GOogle's DoubleClick remarketing feature.
-    doubleClick : false
+    doubleClick : false,
+    // _setCustomVar positions ex: traitsPositions: { ESTADO: 3, FAIXA_ETARIA: 4, SEXO: 5 }
+    traitsPositions: null
   },
 
   initialize : function (options, ready) {
+
+    window.MultiGoogleAnalytics = window.MultiGoogleAnalytics || {};
 
     window._gaq = window._gaq || [];
     
@@ -74,6 +79,8 @@ module.exports = Provider.extend({
 			this.pageview(path);
     }
 
+    window.MultiGoogleAnalytics["traitsPositions"] = options.traitsPositions;
+
     // URLs change if DoubleClick is on.
     if (options.doubleClick) {
       load('//stats.g.doubleclick.net/dc.js');
@@ -86,6 +93,15 @@ module.exports = Provider.extend({
 
     // Google makes a queue so it's ready immediately.
     ready();
+  },
+
+  identify : function (userId, traits) {
+    if (traits) {
+      each(traits, function (key, value) {
+        window._gaq.push(['_setCustomVar', window.MultiGoogleAnalytics.traitsPositions[key], key, value, 1],
+                         ['b._setCustomVar', window.MultiGoogleAnalytics.traitsPositions[key], key, value, 1]);
+      });
+    }
   },
 
   track : function (event, properties) {
