@@ -285,7 +285,7 @@ describe('Multi Google Analytics', function () {
         homeTrackingId : 'w',
         produtoTrackingId : 'k',
         traitsPositions: { ESTADO: 3, FAIXA_ETARIA: 4, SEXO: 5 }
-      }});
+      }}, { user: { persist: false } });
       analytics.identify(21321321, {
           ESTADO: "RJ",
           FAIXA_ETARIA: "Adolescente (12 a 17 anos)",
