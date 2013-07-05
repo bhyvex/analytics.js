@@ -54,6 +54,7 @@ test-providers: server
 #só é usado pela globo.com manter no conflito do marge
 # Runs only the minified provider tests.
 test-globo-providers: server
+	make min
 	sleep 1
 	$(PHANTOM) $(PHANTOM_OPTS) http://localhost:8000/test/globo-providers.html
 	make kill		
@@ -71,6 +72,12 @@ test-browser: server
 	open http://localhost:8000/test/core.html
 	open http://localhost:8000/test/providers.html
 	open http://localhost:8000/test/min.html
+
+#só é usado pela globo.com manter no conflito do marge
+# Opens all the tests in your browser.
+test-globo-browser: server
+	sleep 1
+	open http://localhost:8000/test/globo-providers.html
 
 # Compiles, minfies, component, and tests analytics.js - wrapped up and good to go.
 release: clean analytics.js min component test
