@@ -26,6 +26,9 @@ module.exports = Provider.extend({
   },
 
   identify : function (userId, traits) {
+    var obj = {dpid: 1491, dpuuid: userId};
+    gDil.api.aamIdSync(obj);
+
     if (traits) {
       gDil.api.signals(traits, "c_");
       gDil.api.submit();
